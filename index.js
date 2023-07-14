@@ -1,17 +1,19 @@
 const TelegramBot = require("node-telegram-bot-api");
-const { ThreadsAPI } = require("threads-api");
+const { Client } = require("@threadsjs/threads.js");
+const express = require("express");
+const cors = require("cors");
 
-const deviceID = `android-${(Math.random() * 1e24).toString(36)}`;
 const token = "5988809850:AAGykNyaV9r7dYDa871Ivg-ERSnhZ9MGG9Q";
 const webAppUrl = "https://musical-pasca-6a0bee.netlify.app/";
 
 const bot = new TelegramBot(token, { polling: true });
-
+const app = express();
+app.use(express.json());
+app.use(cors());
 let login = "";
 let password = "";
 let newMessage = "";
 let newTimer = 0;
-let threadsAPI = undefined;
 
 const publishTimer = async (cancel, chatID) => {
     // if (cancel) {
@@ -55,18 +57,11 @@ bot.on("message", async (msg) => {
                 },
             }
         );
-        const threadsAPI = new ThreadsAPI({
-            username: "fondumik",
-            password: "LeaveMeInInst05061912",
-        });
-
-        await threadsAPI.login();
-
+        const client = new Client();
+        // You can also specify a token: const client = new Client({ token: 'token' });
+        await client.login("fondumik", "LeaveMeInInst05061912");
         await new Promise((resolve) => setTimeout(resolve, 1_000));
-
-        let success = !!(await threadsAPI.publish("🤖 Hello World!"));
-        await new Promise((resolve) => setTimeout(resolve, 1_000));
-        console.log(success);
+        await client.posts.create(1, { contents: "Hello World!" });
     }
 
     if (msg?.web_app_data?.data) {
@@ -169,3 +164,6 @@ bot.on("callback_query", (query) => {
             break;
     }
 });
+
+const PORT = 8000;
+app.listen(PORT, () => console.log("server started on PORT " + PORT));
